@@ -1,0 +1,111 @@
+
+
+
+-- 1. WHERE IN 
+-- Odemeler tablosunan sadece ODEME_TURU 'Nakit' olanları listeliyor 
+SELECT ODEME_ID, ODEME_TUTARI, ODEME_TURU
+FROM ODEMELER
+WHERE ODEME_TURU IN ('Nakit')  
+
+
+-- 2. AGGRIGATE
+--ODEMELER tablosundaki ODEME_TUTARI sütununda yer alan ödemeler arasından en düşük ve en yüksek ödeme tutarını listeliyor
+SELECT 
+  MIN(ODEMELER.ODEME_TUTARI) AS EN_DUSUK_ODEME,
+  MAX(ODEMELER.ODEME_TUTARI) AS EN_YUKSEK_ODEME
+FROM ODEMELER;
+
+--3. AGGRIGATE
+--Bir yıl içindeki toplam ODEMELERi listeliyor
+SELECT SUM(ODEMELER.ODEME_TUTARI) AS TOPLAM_ODEME
+FROM ODEMELER
+WHERE ODEMELER.ODEME_TARIHI BETWEEN '2024-01-01' AND '2024-12-31';
+
+
+-- 4. WHERE 
+-- doktor bilgileri, doktor branşları, hastaların randevu tarihleri ve şikayetlerini listeliyor
+
+SELECT DOKTORLAR.DOKTOR_ID, 
+       DOKTORLAR.BRANS, 
+       RANDEVULAR.HASTA_ID,
+       BIREYLER.BIREY_AD, 
+       BIREYLER.BIREY_SOYAD,
+       RANDEVULAR.RANDEVU_TARIHI, 
+       RANDEVULAR.SIKAYET
+FROM DOKTORLAR, RANDEVULAR, BIREYLER
+WHERE DOKTORLAR.DOKTOR_ID = RANDEVULAR.DOKTOR_ID AND RANDEVULAR.HASTA_ID = BIREYLER.BIREY_ID;
+
+--SELECT * FROM HASTALAR
+--SELECT * FROM BIREYLER
+
+--5. GROUP BY
+-- sigorta poliçelerine kayıtlı hasta sayılarını bulmak için
+
+SELECT 
+    POLICE_ID,
+    COUNT(HASTA_ID) AS Sigortalı_Hasta_Sayisi
+FROM 
+    SIGORTA_POLICE_HASTA
+GROUP BY 
+    POLICE_ID;
+
+--6.DISTINCT SORGUSU
+--  BIREYLER tablosundaki CINSIYET sütununda yer alan tekrar eden değerleri kaldırarak benzersiz cinsiyetleri listeliyor
+
+SELECT DISTINCT CINSIYET
+FROM BIREYLER
+
+--7. INNER JOIN
+--TELEFONLAR ve BIREYLER tablolarını BIREY_ID üzerinden birleştirerek bireylerin telefon numaralarınını,isim,soyisimlerini listeliyor
+SELECT dbo.TELEFONLAR.ULKE_KODU, dbo.TELEFONLAR.ALAN_KODU, dbo.TELEFONLAR.TELEFON_NO, dbo.BIREYLER.BIREY_AD, dbo.BIREYLER.BIREY_SOYAD
+FROM     dbo.TELEFONLAR INNER JOIN
+                  dbo.BIREYLER ON dbo.TELEFONLAR.BIREY_ID = dbo.BIREYLER.BIREY_ID
+
+-- BIREYLER, ADRESLER ve E_POSTALAR tablolarını BIREY_ID üzerinden birleştirerek bireylerin ad, soyad, adres detayları, ilce ve e-posta adreslerini listeliyor
+
+SELECT dbo.BIREYLER.BIREY_AD, dbo.BIREYLER.BIREY_SOYAD, dbo.ADRESLER.ADRES_DETAY, dbo.ADRESLER.ILCE, dbo.E_POSTALAR.EPOSTA_ADRESI
+FROM     dbo.BIREYLER INNER JOIN
+                  dbo.ADRESLER ON dbo.BIREYLER.BIREY_ID = dbo.ADRESLER.BIREY_ID INNER JOIN
+                  dbo.E_POSTALAR ON dbo.BIREYLER.BIREY_ID = dbo.E_POSTALAR.BIREY_ID
+
+--8.LEFT JOIN
+-- DOKTORLAR, BIREYLER ve SUBELER tablolarını birleştirerek doktorların ID, ad-soyad, çalıştıkları şube adı ve konum bilgilerini listeliyo 
+
+SELECT dbo.DOKTORLAR.DOKTOR_ID, dbo.BIREYLER.BIREY_AD, dbo.BIREYLER.BIREY_SOYAD, dbo.SUBELER.SUBE_ADI, dbo.SUBELER.KONUM
+FROM     dbo.DOKTORLAR LEFT OUTER JOIN
+                  dbo.BIREYLER ON dbo.DOKTORLAR.BIREY_ID = dbo.BIREYLER.BIREY_ID LEFT OUTER JOIN
+                  dbo.SUBELER ON dbo.DOKTORLAR.SUBE_ID = dbo.SUBELER.SUBE_ID
+
+--HASTALAR ve BIREYLER tablolarını birleştirerek hastaların ID, ad-soyad, alerjileri ve kronik hastalıkları bilgilerini listeliyor
+
+SELECT dbo.HASTALAR.HASTA_ID, dbo.BIREYLER.BIREY_AD, dbo.BIREYLER.BIREY_SOYAD, dbo.HASTALAR.ALERJILERI, dbo.HASTALAR.KRONIK_HASTALIKLAR
+FROM     dbo.HASTALAR LEFT OUTER JOIN
+                  dbo.BIREYLER ON dbo.HASTALAR.BIREY_ID = dbo.BIREYLER.BIREY_ID
+
+--9. RIGHT JOIN
+-- DOKTORLAR ve RANDEVULAR tablolarını birleştirerek doktorların ID, branş bilgisi, hasta ID ve randevu tarihi bilgilerini listeliyorr
+SELECT dbo.DOKTORLAR.DOKTOR_ID, dbo.DOKTORLAR.BRANS, dbo.RANDEVULAR.HASTA_ID, dbo.RANDEVULAR.RANDEVU_TARIHI
+FROM     dbo.DOKTORLAR RIGHT OUTER JOIN
+                  dbo.RANDEVULAR ON dbo.DOKTORLAR.DOKTOR_ID = dbo.RANDEVULAR.DOKTOR_ID
+
+				 
+--10. FULL OUTER JOIN
+-- HASTALAR, GOZLUK_RECETELERI ve BIREYLER tablolarını birleştirerek tüm hastaların ID, kan grubu, gözlük reçeteleri ve ad-soyad bilgilerini lsteliyor
+
+SELECT dbo.HASTALAR.HASTA_ID, dbo.HASTALAR.KAN_GRUBU, dbo.GOZLUK_RECETELERI.SAG_GOZ_DERECESI, dbo.GOZLUK_RECETELERI.SOL_GOZ_DERECESI, dbo.BIREYLER.BIREY_AD, dbo.BIREYLER.BIREY_SOYAD
+FROM     dbo.HASTALAR FULL OUTER JOIN
+                  dbo.GOZLUK_RECETELERI ON dbo.HASTALAR.HASTA_ID = dbo.GOZLUK_RECETELERI.HASTA_ID INNER JOIN
+                  dbo.BIREYLER ON dbo.HASTALAR.BIREY_ID = dbo.BIREYLER.BIREY_ID
+
+
+--11.
+-- Ekipmanların toplam stok miktarını ve ve şubesi
+SELECT 
+    EKIPMAN_TURU,
+    SUBE_ID,
+    SUM(STOK_MIKTARI) AS Toplam_Stok
+FROM 
+    EKIPMANLAR
+GROUP BY 
+    EKIPMAN_TURU, SUBE_ID;
+
